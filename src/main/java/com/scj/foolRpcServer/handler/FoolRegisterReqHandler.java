@@ -24,7 +24,7 @@ public class FoolRegisterReqHandler extends SimpleChannelInboundHandler<FoolProt
         // 获取发送-处理的时间差
         long gap = System.currentTimeMillis() - req.getTimeStamp();
         // 拼接key
-        String ip = ctx.channel().remoteAddress().toString().substring(1).split(":")[0];
+        String ip = ctx.channel().remoteAddress().toString();
         switch (foolProtocol.getRemoteType()) {
             // 获取下游服务IP
             case Constant.REGISTER_REQ_GET_IP:
@@ -51,7 +51,7 @@ public class FoolRegisterReqHandler extends SimpleChannelInboundHandler<FoolProt
                 buildResp(reqId, Constant.REGISTER_RESP_GET_IP);
         // 获取IP
         String serviceIp = FRSConstant.foolCache.getService(
-                req.getFullClassName(), req.getVersion(), gap);
+                req.getFullClassName(), req.getVersion());
         // TODO 异常
         foolProtocol.getData().setCode(ExceptionEnum.SUCCESS.getErrorCode());
         foolProtocol.getData().setMessage(ExceptionEnum.SUCCESS.getErrorMessage());
@@ -74,7 +74,7 @@ public class FoolRegisterReqHandler extends SimpleChannelInboundHandler<FoolProt
         // 注册信息
         FRSConstant.foolCache.register(req.getAppName()
                 , req.getFullClassName()
-                , ip, req.getVersion(), gap);
+                , ip, req.getVersion(), ctx.channel());
         foolProtocol.getData().setCode(ExceptionEnum.SUCCESS.getErrorCode());
         foolProtocol.getData().setMessage(ExceptionEnum.SUCCESS.getErrorMessage());
         ctx.writeAndFlush(foolProtocol);

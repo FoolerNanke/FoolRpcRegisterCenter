@@ -1,5 +1,7 @@
 package com.scj.foolRpcServer.cache;
 
+import io.netty.channel.Channel;
+
 /**
  * @author suchangjie.NANKE
  * @Title: Cache
@@ -13,17 +15,17 @@ public interface FoolCache {
      * @param appName 应用名称
      * @param fullClassName 注册类信息
      * @param version 版本
-     * @param gap 时间间隔
+     * @param channel webIO链接通道
      * @return 是否注册成功
      */
-    boolean register(String appName, String fullClassName, String ip, String version, long gap);
+    boolean register(String appName, String fullClassName
+            , String ip, String version, Channel channel);
 
     /**
      * 获取下游服务地址
      * @param fullClassName 全类名
      * @param version 版本号
-     * @param gap 时间间隔
      * @return ip
      */
-    String getService(String fullClassName, String version, long gap);
+    String getService(String fullClassName, String version);
 }
