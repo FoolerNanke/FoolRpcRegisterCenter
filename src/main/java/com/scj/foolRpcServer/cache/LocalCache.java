@@ -26,13 +26,21 @@ public class LocalCache implements FoolCache{
         cache = new LocalCaffeineCache();
     }
 
+    /**
+     * @param appName 应用名称
+     * @param fullClassName 注册类信息
+     * @param ip_port ip_port
+     * @param version 版本
+     * @param channel webIO链接通道
+     * @return 该 channel and ip 是否首次添加
+     */
     @Override
     public boolean register(String appName, String fullClassName
             , String ip_port, String version, Channel channel) {
-        cache.save(appName, version, ip_port, fullClassName, channel);
+        boolean save = cache.save(appName, version, ip_port, fullClassName, channel);
         log.info("成功注册 app:{}, class:{}, version:{}"
                 , appName, fullClassName, version);
-        return true;
+        return save;
     }
 
     @Override
@@ -44,5 +52,10 @@ public class LocalCache implements FoolCache{
             log.info("给出IP{}", ip);
             return ip;
         }
+    }
+
+    @Override
+    public void remove(Channel channel) {
+        cache.remove(channel);
     }
 }
