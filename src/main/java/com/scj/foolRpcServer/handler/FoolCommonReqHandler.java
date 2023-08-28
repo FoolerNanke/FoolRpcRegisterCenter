@@ -6,19 +6,23 @@ import com.scj.foolRpcBase.entity.FoolRegisterReq;
 import com.scj.foolRpcBase.entity.FoolRegisterResp;
 import com.scj.foolRpcBase.exception.ExceptionEnum;
 import com.scj.foolRpcServer.constant.FRSConstant;
+import com.scj.foolRpcServer.pingpong.PingPongRunnable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-
 /**
  * @author suchangjie.NANKE
  * @Title: FoolRegisterHandler
  * @date 2023/8/25 19:46
  * @description 下游注册信息处理类
  */
-public class FoolRegisterReqHandler extends SimpleChannelInboundHandler<FoolProtocol<FoolRegisterReq>> {
+public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtocol<FoolRegisterReq>> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx
             , FoolProtocol<FoolRegisterReq> foolProtocol) {
+        if (foolProtocol.getRemoteType() == Constant.REGISTER_PONG_RESP){
+            ctx.fireChannelRead(foolProtocol);
+            return;
+        }
         // 来自下游的注册信息
         FoolRegisterReq req = foolProtocol.getData();
         // 获取发送-处理的时间差
@@ -35,7 +39,7 @@ public class FoolRegisterReqHandler extends SimpleChannelInboundHandler<FoolProt
                 handReqForRegister(req, ctx, gap, foolProtocol.getReqId(), ip);
                 break;
         }
-
+        ctx.fireChannelRead(foolProtocol);
     }
 
     /**
@@ -72,12 +76,21 @@ public class FoolRegisterReqHandler extends SimpleChannelInboundHandler<FoolProt
         FoolProtocol<FoolRegisterResp> foolProtocol =
                 buildResp(reqId, Constant.REGISTER_RESP_REG_CLASS);
         // 注册信息
-        FRSConstant.foolCache.register(req.getAppName()
+        boolean firstTimeAdd = FRSConstant.foolCache.register(req.getAppName()
                 , req.getFullClassName()
                 , ip, req.getVersion(), ctx.channel());
         foolProtocol.getData().setCode(ExceptionEnum.SUCCESS.getErrorCode());
         foolProtocol.getData().setMessage(ExceptionEnum.SUCCESS.getErrorMessage());
         ctx.writeAndFlush(foolProtocol);
+
+        // IP完成注册 添加一个IP心跳检测任务
+        if (firstTimeAdd){
+            FRSConstant.EXECUTORS.schedule(
+                    new PingPongRunnable(FRSConstant.EXECUTORS
+                            , ctx.channel())
+                    , FRSConstant.PING_PONG_TIME_GAP
+                    , FRSConstant.PING_PONG_TIME_UNIT);
+        }
     }
 
     /**
@@ -86,7 +99,7 @@ public class FoolRegisterReqHandler extends SimpleChannelInboundHandler<FoolProt
      * @param type 类型
      * @return FoolProtocol<FoolRegisterResp>
      */
-    public FoolProtocol<FoolRegisterResp> buildResp(long reqId, byte type){
+    public FoolProtocol<FoolRegisterResp> buildResp(long reqId, byte type) {
         // 构造响应
         FoolProtocol<FoolRegisterResp> foolProtocol = new FoolProtocol<>();
         foolProtocol.setRemoteType(type);
@@ -94,5 +107,4 @@ public class FoolRegisterReqHandler extends SimpleChannelInboundHandler<FoolProt
         foolProtocol.setData(new FoolRegisterResp());
         return foolProtocol;
     }
-
 }

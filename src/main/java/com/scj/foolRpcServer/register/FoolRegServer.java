@@ -3,11 +3,11 @@ package com.scj.foolRpcServer.register;
 import com.scj.foolRpcBase.constant.Constant;
 import com.scj.foolRpcBase.handler.in.FoolProtocolDecode;
 import com.scj.foolRpcBase.handler.out.FoolProtocolEncode;
-import com.scj.foolRpcServer.handler.FoolRegisterReqHandler;
+import com.scj.foolRpcServer.constant.FRSConstant;
+import com.scj.foolRpcServer.handler.FoolPingPongHandler;
+import com.scj.foolRpcServer.handler.FoolCommonReqHandler;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.springframework.beans.factory.InitializingBean;
@@ -24,15 +24,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class FoolRegServer implements InitializingBean {
 
-    /**
-     * 注册中心服务总通道
-     */
-    private Channel channel;
-
     @Override
-    public void afterPropertiesSet() throws Exception {
-        channel = new ServerBootstrap()
-                .group(new NioEventLoopGroup())
+    public void afterPropertiesSet() {
+        new ServerBootstrap()
+                .group(FRSConstant.EXECUTORS)
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
@@ -43,8 +38,10 @@ public class FoolRegServer implements InitializingBean {
                                 // 编码
                                 .addLast(new FoolProtocolEncode<>())
                                 // 请求处理器
-                                .addLast(new FoolRegisterReqHandler());
+                                .addLast(new FoolCommonReqHandler())
+                                // 心跳处理器
+                                .addLast(new FoolPingPongHandler());
                     }
-                }).bind(Constant.REGISTER_PORT).channel();
+                }).bind(Constant.REGISTER_PORT);
     }
 }

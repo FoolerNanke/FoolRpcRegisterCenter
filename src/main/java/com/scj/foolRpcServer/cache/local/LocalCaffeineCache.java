@@ -76,8 +76,9 @@ public class LocalCaffeineCache {
      * @param version 版本
      * @param ip_port 下游主机的IP+PORT
      * @param className 服务类名称
+     * @return 该 channel and ip 是否首次添加
      */
-    public void save(String app, String version
+    public boolean save(String app, String version
             , String ip_port, String className, Channel channel){
         String app_version = app + FRSConstant.UNDER_LINE + version;
         String class_version = className + FRSConstant.UNDER_LINE + version;
@@ -98,7 +99,10 @@ public class LocalCaffeineCache {
         ipList.add(ip_port);
 
         // channel_ipPort 存储
+        // 关联关系已经存在
+        if (ip_port.equals(channel_ipPort.getIfPresent(channel))) return false;
         channel_ipPort.put(channel, ip_port);
+        return true;
     }
 
     /**

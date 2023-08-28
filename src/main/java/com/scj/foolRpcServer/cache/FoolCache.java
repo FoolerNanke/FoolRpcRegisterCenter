@@ -14,12 +14,13 @@ public interface FoolCache {
      * 下游将自己的服务注册到注册中心
      * @param appName 应用名称
      * @param fullClassName 注册类信息
+     * @param ip_port ip_port
      * @param version 版本
      * @param channel webIO链接通道
-     * @return 是否注册成功
+     * @return 该 channel and ip 是否首次添加
      */
     boolean register(String appName, String fullClassName
-            , String ip, String version, Channel channel);
+            , String ip_port, String version, Channel channel);
 
     /**
      * 获取下游服务地址
@@ -28,4 +29,10 @@ public interface FoolCache {
      * @return ip
      */
     String getService(String fullClassName, String version);
+
+    /**
+     * channel 不通 移除对应 ip
+     * @param channel
+     */
+    void remove(Channel channel);
 }
