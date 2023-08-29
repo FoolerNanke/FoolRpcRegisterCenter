@@ -1,5 +1,6 @@
 package com.scj.foolRpcServer.cache;
 
+import com.scj.foolRpcServer.cache.redis.RemoteRedisCache;
 import io.netty.channel.Channel;
 
 /**
@@ -9,6 +10,15 @@ import io.netty.channel.Channel;
  * @description 使用redis进行存储
  */
 public class RedisCache implements FoolCache {
+
+    /**
+     * redis缓存
+     */
+    private final RemoteRedisCache cache;
+
+    public RedisCache() {
+        this.cache = new RemoteRedisCache();
+    }
 
     @Override
     public boolean register(String appName, String fullClassName, String ip_port, String version, Channel channel) {
