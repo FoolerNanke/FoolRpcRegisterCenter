@@ -2,7 +2,6 @@ package com.scj.foolRpcServer.handler;
 
 import com.scj.foolRpcBase.constant.Constant;
 import com.scj.foolRpcBase.entity.FoolProtocol;
-import com.scj.foolRpcBase.entity.FoolRegisterReq;
 import com.scj.foolRpcBase.entity.FoolRegisterResp;
 import com.scj.foolRpcServer.constant.PromiseCache;
 import io.netty.channel.ChannelHandlerContext;
