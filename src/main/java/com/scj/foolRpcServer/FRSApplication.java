@@ -1,13 +1,24 @@
 package com.scj.foolRpcServer;
 
+import com.scj.foolRpcBase.entity.FoolRegisterReq;
+import com.scj.foolRpcServer.cache.redis.RedisOpe;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 @SpringBootApplication
 public class FRSApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(FRSApplication.class, args);
+        ConfigurableApplicationContext run = SpringApplication.run(FRSApplication.class, args);
+        RedisOpe bean = run.getBean(RedisOpe.class);
+        FoolRegisterReq req = new FoolRegisterReq();
+        req.setAppName("appName");
+        req.setTimeStamp(1234L);
+        req.setVersion("0.0.0.1");
+        req.setFullClassName("fullclassname");
+        bean.cacheValue("name",req);
+        System.out.println(bean.getValue("name"));
     }
 
 }
