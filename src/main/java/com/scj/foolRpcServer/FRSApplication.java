@@ -19,6 +19,7 @@ public class FRSApplication {
         req.setFullClassName("fullclassname");
         bean.cacheValue("name",req);
         System.out.println(bean.getValue("name"));
+        bean.cacheList("names", "scj");
     }
 
 }

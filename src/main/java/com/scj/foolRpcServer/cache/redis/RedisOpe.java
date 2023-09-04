@@ -68,4 +68,20 @@ public class RedisOpe {
         }
         return null;
     }
+
+    /**
+     * list 添加
+     * @param key 键
+     * @param value 值
+     * @return 是否成功
+     */
+    public boolean cacheList(String key, Object value){
+        try {
+            redisTemplate.boundListOps(key).leftPush(value);
+            return true;
+        } catch (Throwable e) {
+            log.error("缓存List[" + key + "]失败, value[" + value + "] " + e.getMessage());
+        }
+        return false;
+    }
 }
