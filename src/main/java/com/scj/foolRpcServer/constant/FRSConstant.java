@@ -40,5 +40,12 @@ public class FRSConstant {
      */
     public static NioEventLoopGroup EXECUTORS = new NioEventLoopGroup(8);
 
+    /**
+     * redis 存储 app_class 的键值
+     */
+    public static String APP_CLASS = "app_class";
+
+
+
 }
 
