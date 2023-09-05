@@ -30,6 +30,16 @@ public class RemoteRedisCache {
             , String ip_port, String className, Channel channel){
         String app_version = app + FRSConstant.UNDER_LINE + version;
         String class_version = className + FRSConstant.UNDER_LINE + version;
+        // 存储 app:class
+        redisOpe.cacheMap(FRSConstant.REDIS_PRE + FRSConstant.APP + app_version
+                , class_version, String.valueOf(0));
+        // 存储 class:app
+        redisOpe.cacheMap(FRSConstant.REDIS_PRE + FRSConstant.CLASS, class_version, app_version);
+        // 存储数据到 app_ipList
+        redisOpe.cacheZSet(FRSConstant.REDIS_PRE + FRSConstant.IP_LIST + app_version, ip_port);
+        // channel_ipPort 存储
+        redisOpe.cacheMap(FRSConstant.REDIS_PRE + FRSConstant.CHANNEL
+                , channel.id().asLongText(), ip_port);
         return true;
     }
 }
