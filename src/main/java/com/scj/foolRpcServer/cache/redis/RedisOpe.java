@@ -84,4 +84,37 @@ public class RedisOpe {
         }
         return false;
     }
+
+    /**
+     *
+     * @param mapName
+     * @param key
+     * @param value
+     * @return
+     */
+    public boolean cacheMap(String mapName, String key, String value){
+        try {
+            redisTemplate.boundHashOps(mapName).put(key, value);
+            return true;
+        } catch (Throwable e) {
+            log.error("缓存map[" + mapName + ":" + key + "]失败, value[" + value + "] " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     *
+     * @param key
+     * @param value
+     * @return
+     */
+    public boolean cacheZSet(String key, String value){
+        try {
+            redisTemplate.boundZSetOps(key).add(value, 0);
+            return true;
+        } catch (Throwable e) {
+            log.error("缓存map[" + key + "]失败, value[" + value + "] " + e.getMessage());
+        }
+        return false;
+    }
 }
