@@ -2,9 +2,14 @@ package com.scj.foolRpcServer.cache.redis;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -116,5 +121,13 @@ public class RedisOpe {
             log.error("缓存map[" + key + "]失败, value[" + value + "] " + e.getMessage());
         }
         return false;
+    }
+
+    public void ope(){
+        DefaultRedisScript<Boolean> redisScript = new DefaultRedisScript<>();
+        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/test.lua")));
+        redisScript.setResultType(Boolean.class);
+        List<String> keys = Arrays.asList("testLua", "hello lua");
+        redisTemplate.execute(redisScript, keys, "100000");
     }
 }
