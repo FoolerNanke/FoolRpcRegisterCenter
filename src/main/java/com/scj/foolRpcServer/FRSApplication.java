@@ -20,6 +20,8 @@ public class FRSApplication {
         bean.cacheValue("name",req);
         System.out.println(bean.getValue("name"));
         bean.cacheList("names", "scj");
+
+        bean.ope();
     }
 
 }
