@@ -21,7 +21,7 @@ public class FRSApplication {
         System.out.println(bean.getValue("name"));
         bean.cacheList("names", "scj");
 
-        bean.ope();
+        System.out.println(bean.save("app", "version", "ip_port", "className", "channel"));
     }
 
 }

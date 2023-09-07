@@ -1,5 +1,6 @@
 package com.scj.foolRpcServer.cache.redis;
 
+import com.scj.foolRpcServer.constant.FRSConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -123,11 +124,36 @@ public class RedisOpe {
         return false;
     }
 
-    public void ope(){
+    /**
+     * 信息存储
+     * @param app 应用名
+     * @param version 版本
+     * @param ip_port 下游主机的IP+PORT
+     * @param className 服务类名称
+     * @param channel_id 通道ID
+     * @return 是否存储成功
+     */
+    public boolean save(String app, String version
+            , String ip_port, String className, String channel_id){
+        String app_version = app + FRSConstant.UNDER_LINE + version;
+        String class_version = className + FRSConstant.UNDER_LINE + version;
+
         DefaultRedisScript<Boolean> redisScript = new DefaultRedisScript<>();
-        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/test.lua")));
+        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/lua.txt")));
         redisScript.setResultType(Boolean.class);
-        List<String> keys = Arrays.asList("testLua", "hello lua");
-        redisTemplate.execute(redisScript, keys, "100000");
+        List<String> keys = Arrays.asList(
+                FRSConstant.REDIS_PRE + FRSConstant.APP + app_version,
+                class_version,
+                "0", // 本版本数据被调用的总次数
+                FRSConstant.REDIS_PRE + FRSConstant.CLASS,
+                class_version,
+                app_version,
+                FRSConstant.REDIS_PRE + FRSConstant.IP_LIST + app_version,
+                ip_port,
+                FRSConstant.REDIS_PRE + FRSConstant.CHANNEL,
+                channel_id,
+                ip_port
+        );
+        return Boolean.TRUE.equals(redisTemplate.execute(redisScript, keys));
     }
 }
