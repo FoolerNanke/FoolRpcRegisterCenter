@@ -3,12 +3,18 @@ package com.scj.foolRpcServer.cache.redis;
 import com.scj.foolRpcServer.constant.FRSConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
+import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -139,7 +145,7 @@ public class RedisOpe {
         String class_version = className + FRSConstant.UNDER_LINE + version;
 
         DefaultRedisScript<Boolean> redisScript = new DefaultRedisScript<>();
-        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/lua.txt")));
+        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/save.lua")));
         redisScript.setResultType(Boolean.class);
         List<String> keys = Arrays.asList(
                 FRSConstant.REDIS_PRE + FRSConstant.APP + app_version,
@@ -153,6 +159,27 @@ public class RedisOpe {
                 FRSConstant.REDIS_PRE + FRSConstant.CHANNEL,
                 channel_id,
                 ip_port
+        );
+        return Boolean.TRUE.equals(redisTemplate.execute(redisScript, keys));
+    }
+
+    public boolean test(){
+        DefaultRedisScript<Boolean> redisScript = new DefaultRedisScript<>();
+        String input = "redis.call('SET', KEYS[1], KEYS[2])";
+        // 从给定的字符串中获取字节序列
+        byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
+
+        // 从输入缓冲区创建一个 `ByteArrayInputStream`
+        InputStream in;
+        in = new ByteArrayInputStream(bytes);
+
+        // 做一点事
+
+        //关闭输入流
+        redisScript.setScriptSource(new ResourceScriptSource(new ByteArrayResource(input.getBytes(StandardCharsets.UTF_8))));
+        redisScript.setResultType(Boolean.class);
+        List<String> keys = Arrays.asList(
+                "keyName", "values"
         );
         return Boolean.TRUE.equals(redisTemplate.execute(redisScript, keys));
     }
