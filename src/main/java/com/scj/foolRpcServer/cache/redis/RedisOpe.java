@@ -129,6 +129,38 @@ public class RedisOpe {
     }
 
     /**
+     * 无过期时间set存储
+     * @param key
+     * @param value
+     * @return
+     */
+    public boolean cacheSet(String key, String value){
+        try {
+            redisTemplate.boundSetOps(key).add(value, 0);
+            return true;
+        } catch (Throwable e) {
+            log.error("缓存map[" + key + "]失败, value[" + value + "] " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * set 删除值
+     * @param key
+     * @param value
+     * @return
+     */
+    public boolean rmSetValue(String key, String value){
+        try {
+            redisTemplate.boundSetOps(key).remove(value);
+            return true;
+        } catch (Throwable e) {
+            log.error("缓存map[" + key + "]失败, value[" + value + "] " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
      * 信息存储
      * @param app 应用名
      * @param version 版本

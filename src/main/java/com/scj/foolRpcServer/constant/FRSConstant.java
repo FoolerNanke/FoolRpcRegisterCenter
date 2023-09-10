@@ -83,6 +83,11 @@ public class FRSConstant {
     public static String APP_CLASS = "app_class";
 
     /**
+     * 失效ip_port set key
+     */
+    public static String EXPIRE_SET = "expire_ip_port_set";
+
+    /**
      * 默认过期时间
      * 3天
      */

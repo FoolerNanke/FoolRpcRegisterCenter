@@ -28,28 +28,19 @@ public class RemoteRedisCache {
     /**
      * 信息存储
      * 不可重试
-     * @param app 应用名
-     * @param version 版本
      * @param ip_port 下游主机的IP+PORT
      * @param className 服务类名称
      * @return 该 channel and ip 是否首次添加
      */
-    public boolean saveByOriginRedis(String app, String version
-            , String ip_port, String className, Channel channel){
-        String app_version = app + FRSConstant.UNDER_LINE + version;
-        String class_version = className + FRSConstant.UNDER_LINE + version;
+    public boolean saveByOriginRedis(String ip_port, String className, Channel channel){
         try {
-            // 存储 app:class
-            boolean res1 = redisOpe.cacheMap(FRSConstant.REDIS_PRE + FRSConstant.APP + app_version
-                    , class_version, String.valueOf(0));
-            // 存储 class:app
-            boolean res2 = redisOpe.cacheMap(FRSConstant.REDIS_PRE + FRSConstant.CLASS, class_version, app_version);
-            // 存储数据到 app_ipList
-            boolean res3 = redisOpe.cacheZSet(FRSConstant.REDIS_PRE + FRSConstant.IP_LIST + app_version, ip_port);
-            // channel_ipPort 存储
-            boolean res4 = redisOpe.cacheMap(FRSConstant.REDIS_PRE + FRSConstant.CHANNEL
-                    , channel.id().asLongText(), ip_port);
-            return res1 && res2 && res3 && res4;
+            // 存储 class:ip_port
+            boolean class_ip_port_save = redisOpe.cacheSet(FRSConstant.REDIS_PRE + FRSConstant.CLASS + className, ip_port);
+            // 存储 channel_id:ip_port
+            boolean channel_ip_port_save = redisOpe.cacheValue(FRSConstant.REDIS_PRE + FRSConstant.CHANNEL + channel.id(), ip_port);
+            // 修改失效队列
+            redisOpe.rmSetValue(FRSConstant.REDIS_PRE + FRSConstant.EXPIRE_SET, ip_port);
+            return class_ip_port_save && channel_ip_port_save;
         } catch (Throwable t){
             log.error("origin redis 插入失败", t);
             return false;
