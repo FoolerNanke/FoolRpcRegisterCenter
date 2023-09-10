@@ -3,6 +3,7 @@ package com.scj.foolRpcServer.cache;
 
 import com.scj.foolRpcServer.cache.local.LocalCaffeineCache;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import io.netty.channel.Channel;
 
@@ -14,17 +15,14 @@ import io.netty.channel.Channel;
  */
 
 @Slf4j
-@Component
+@Component("localCache")
 public class LocalCache implements FoolCache{
 
     /**
      * 缓存
      */
-    private final LocalCaffeineCache cache;
-
-    public LocalCache(){
-        cache = new LocalCaffeineCache();
-    }
+    @Autowired
+    private LocalCaffeineCache cache;
 
     /**
      * @param appName 应用名称
@@ -37,7 +35,7 @@ public class LocalCache implements FoolCache{
     @Override
     public boolean register(String appName, String fullClassName
             , String ip_port, String version, Channel channel) {
-        boolean save = cache.save(appName, version, ip_port, fullClassName, channel);
+        boolean save = cache.save(ip_port, fullClassName, channel);
         log.info("成功注册 app:{}, class:{}, version:{}"
                 , appName, fullClassName, version);
         return save;
@@ -45,7 +43,7 @@ public class LocalCache implements FoolCache{
 
     @Override
     public String getService(String fullClassName, String version) {
-        String ip = cache.getIp(fullClassName, version);
+        String ip = cache.getIp(fullClassName);
         if (ip == null || ip.equals("")){
             return "";
         } else {

@@ -2,6 +2,8 @@ package com.scj.foolRpcServer.constant;
 
 import com.scj.foolRpcServer.cache.FoolCache;
 import com.scj.foolRpcServer.cache.LocalCache;
+import io.netty.channel.DefaultEventLoopGroup;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.util.concurrent.TimeUnit;
@@ -41,6 +43,12 @@ public class FRSConstant {
     public static NioEventLoopGroup EXECUTORS = new NioEventLoopGroup(8);
 
     /**
+     * 普通任务处理线程池
+     * 处理线程数量为4个
+     */
+    public static EventLoopGroup COMMON_EXECUTORS = new DefaultEventLoopGroup(4);
+
+    /**
      * redis 存储前缀
      */
     public static String REDIS_PRE = "NANKE_FRS_";
@@ -73,6 +81,12 @@ public class FRSConstant {
      * redis 存储 app_class 的键值
      */
     public static String APP_CLASS = "app_class";
+
+    /**
+     * 默认过期时间
+     * 3天
+     */
+    public static Long EXPIRE_TIME = (long) (3 * 24 * 60 * 60);
 
 
 

@@ -1,5 +1,6 @@
 local redis_app_app_version = KEYS[1]
 local class_version = KEYS[2]
+
 local class_version_time = KEYS[3]
 
 local redis_class = KEYS[4]
@@ -12,6 +13,7 @@ local ip_port = KEYS[8]
 local redis_channel = KEYS[9]
 local channel_id = KEYS[10]
 local ip_port = KEYS[11]
+
 
 --- 插入第一条数据 存储 app:class
 --- 如果该数据存在 则不插入
@@ -37,6 +39,8 @@ res = redis.call('HGET', redis_channel, channel_id)
 if res == false then
     redis.call('HSET', redis_channel, channel_id, ip_port)
 end
+local a = redis.call('get', 'aaa')
+return a
 
 
 

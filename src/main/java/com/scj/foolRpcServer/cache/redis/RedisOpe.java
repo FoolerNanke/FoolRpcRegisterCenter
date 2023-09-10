@@ -5,11 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
-import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
@@ -144,9 +142,9 @@ public class RedisOpe {
         String app_version = app + FRSConstant.UNDER_LINE + version;
         String class_version = className + FRSConstant.UNDER_LINE + version;
 
-        DefaultRedisScript<Boolean> redisScript = new DefaultRedisScript<>();
+        DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
         redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/save.lua")));
-        redisScript.setResultType(Boolean.class);
+        redisScript.setResultType(String.class);
         List<String> keys = Arrays.asList(
                 FRSConstant.REDIS_PRE + FRSConstant.APP + app_version,
                 class_version,
@@ -160,7 +158,8 @@ public class RedisOpe {
                 channel_id,
                 ip_port
         );
-        return Boolean.TRUE.equals(redisTemplate.execute(redisScript, keys));
+        System.out.println(redisTemplate.execute(redisScript, keys));
+        return true;
     }
 
     public boolean test(){
@@ -183,4 +182,6 @@ public class RedisOpe {
         );
         return Boolean.TRUE.equals(redisTemplate.execute(redisScript, keys));
     }
+
+
 }
