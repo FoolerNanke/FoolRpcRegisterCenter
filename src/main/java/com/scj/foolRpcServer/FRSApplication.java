@@ -23,8 +23,8 @@ public class FRSApplication {
 
         bean.cacheValue("aaa", "bbb");
 
-        System.out.println(bean.save("app", "version", "ip_port", "className", "channel"));
-        bean.test();
+//        System.out.println(bean.save("app", "version", "ip_port", "className", "channel"));
+//        bean.test();
     }
 
 }

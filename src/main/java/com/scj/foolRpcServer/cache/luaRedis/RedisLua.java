@@ -1,4 +1,4 @@
-package com.scj.foolRpcServer.cache.redis;
+package com.scj.foolRpcServer.cache.luaRedis;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
