@@ -1,22 +1,11 @@
 package com.scj.foolRpcServer.cache.redis;
 
-import com.scj.foolRpcServer.constant.FRSConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.scripting.support.ResourceScriptSource;
-import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,11 +32,10 @@ public class RedisOpe {
      */
     public boolean cacheValueWithExpireTime(String key, Object value, long time, TimeUnit timeUnit) {
         try {
+            Boolean res = redisTemplate.opsForValue().setIfAbsent(key, value);
+            if (Boolean.FALSE.equals(res)) return false;
             if (time > 0) {
-                // 如果有设置超时时间的话
-                redisTemplate.opsForValue().set(key, value, time, timeUnit);
-            } else {
-                redisTemplate.opsForValue().set(key, value);
+                redisTemplate.expire(key, time, timeUnit);
             }
             return true;
         } catch (Throwable e) {
@@ -79,6 +67,19 @@ public class RedisOpe {
             log.error("获取缓存[{}]失败, error = {}", key, e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * 移除一个键
+     * @param key
+     */
+    public boolean rmKey(String key){
+        try {
+            return Boolean.TRUE.equals(redisTemplate.delete(key));
+        } catch (Throwable e){
+            log.error("删除缓存[{}]失败, error = {}", key, e.getMessage());
+        }
+        return false;
     }
 
     /**
@@ -131,56 +132,50 @@ public class RedisOpe {
     }
 
     /**
-     * 信息存储
-     * @param app 应用名
-     * @param version 版本
-     * @param ip_port 下游主机的IP+PORT
-     * @param className 服务类名称
-     * @param channel_id 通道ID
-     * @return 是否存储成功
+     * 无过期时间set存储
+     * @param key
+     * @param value
+     * @return
      */
-    public boolean save(String app, String version
-            , String ip_port, String className, String channel_id){
-        String app_version = app + FRSConstant.UNDER_LINE + version;
-        String class_version = className + FRSConstant.UNDER_LINE + version;
-
-        DefaultRedisScript<Boolean> redisScript = new DefaultRedisScript<>();
-        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/save.lua")));
-        redisScript.setResultType(Boolean.class);
-        List<String> keys = Arrays.asList(
-                FRSConstant.REDIS_PRE + FRSConstant.APP + app_version,
-                class_version,
-                "0", // 本版本数据被调用的总次数
-                FRSConstant.REDIS_PRE + FRSConstant.CLASS,
-                class_version,
-                app_version,
-                FRSConstant.REDIS_PRE + FRSConstant.IP_LIST + app_version,
-                ip_port,
-                FRSConstant.REDIS_PRE + FRSConstant.CHANNEL,
-                channel_id,
-                ip_port
-        );
-        return Boolean.TRUE.equals(redisTemplate.execute(redisScript, keys));
+    public boolean cacheSet(String key, String value){
+        try {
+            Boolean member = redisTemplate.boundSetOps(key).isMember(value);
+            if (Boolean.TRUE.equals(member)) return true;
+            Long add = redisTemplate.boundSetOps(key).add(value, 0);
+            return add != null && add == 1;
+        } catch (Throwable e) {
+            log.error("缓存map[" + key + "]失败, value[" + value + "] " + e.getMessage());
+        }
+        return false;
     }
 
-    public boolean test(){
-        DefaultRedisScript<Boolean> redisScript = new DefaultRedisScript<>();
-        String input = "redis.call('SET', KEYS[1], KEYS[2])";
-        // 从给定的字符串中获取字节序列
-        byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
+    /**
+     * set 删除值
+     * @param key
+     * @param value
+     * @return
+     */
+    public boolean rmSetValue(String key, String value){
+        try {
+            redisTemplate.boundSetOps(key).remove(value);
+            return true;
+        } catch (Throwable e) {
+            log.error("缓存map[" + key + "]失败, value[" + value + "] " + e.getMessage());
+        }
+        return false;
+    }
 
-        // 从输入缓冲区创建一个 `ByteArrayInputStream`
-        InputStream in;
-        in = new ByteArrayInputStream(bytes);
-
-        // 做一点事
-
-        //关闭输入流
-        redisScript.setScriptSource(new ResourceScriptSource(new ByteArrayResource(input.getBytes(StandardCharsets.UTF_8))));
-        redisScript.setResultType(Boolean.class);
-        List<String> keys = Arrays.asList(
-                "keyName", "values"
-        );
-        return Boolean.TRUE.equals(redisTemplate.execute(redisScript, keys));
+    /**
+     * set 获取列表
+     * @param key 键
+     * @return 列表
+     */
+    public Set<Object> getSetWithOutKey2(String key, String key2){
+        try {
+            return redisTemplate.boundSetOps(key).diff(key2);
+        } catch (Throwable e) {
+            log.error("缓存set[" + key + "]失败" + e.getMessage());
+        }
+        return null;
     }
 }

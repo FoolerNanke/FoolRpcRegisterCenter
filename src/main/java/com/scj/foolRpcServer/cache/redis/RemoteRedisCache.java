@@ -2,8 +2,14 @@ package com.scj.foolRpcServer.cache.redis;
 
 import com.scj.foolRpcServer.constant.FRSConstant;
 import io.netty.channel.Channel;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author suchangjie.NANKE
@@ -13,6 +19,7 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
+@Slf4j
 public class RemoteRedisCache {
 
     @Autowired
@@ -20,26 +27,78 @@ public class RemoteRedisCache {
 
     /**
      * 信息存储
-     * @param app 应用名
-     * @param version 版本
      * @param ip_port 下游主机的IP+PORT
      * @param className 服务类名称
-     * @return 该 channel and ip 是否首次添加
+     * @return 插入结果
      */
-    public boolean save(String app, String version
-            , String ip_port, String className, Channel channel){
-        String app_version = app + FRSConstant.UNDER_LINE + version;
-        String class_version = className + FRSConstant.UNDER_LINE + version;
-        // 存储 app:class
-        redisOpe.cacheMap(FRSConstant.REDIS_PRE + FRSConstant.APP + app_version
-                , class_version, String.valueOf(0));
-        // 存储 class:app
-        redisOpe.cacheMap(FRSConstant.REDIS_PRE + FRSConstant.CLASS, class_version, app_version);
-        // 存储数据到 app_ipList
-        redisOpe.cacheZSet(FRSConstant.REDIS_PRE + FRSConstant.IP_LIST + app_version, ip_port);
-        // channel_ipPort 存储
-        redisOpe.cacheMap(FRSConstant.REDIS_PRE + FRSConstant.CHANNEL
-                , channel.id().asLongText(), ip_port);
-        return true;
+    public boolean register(String className, String ip_port, Channel channel){
+        try {
+            // 存储 class:ip_port
+            boolean class_ip_port_save = redisOpe.cacheSet(FRSConstant.REDIS_PRE + FRSConstant.CLASS + className, ip_port);
+            // 存储 channel_id:ip_port
+            boolean channel_ip_port_save = redisOpe.cacheValue(FRSConstant.REDIS_PRE + FRSConstant.CHANNEL + channel.id().toString(), ip_port);
+            // 修改失效队列
+            redisOpe.rmSetValue(FRSConstant.REDIS_PRE + FRSConstant.EXPIRE_SET, ip_port);
+            return class_ip_port_save && channel_ip_port_save;
+        } catch (Throwable t){
+            log.error("origin redis 插入失败", t);
+            return false;
+        }
+    }
+
+    /**
+     * 信息存储byLua
+     * 保证全部成功
+     * 无返回值
+     * @param ip_port 下游主机的IP+PORT
+     * @param className 服务类名称
+     */
+    public void registerMustSuccess(String className, String ip_port, Channel channel){
+        FRSConstant.COMMON_EXECUTORS.submit(new Runnable() {
+            private long timeGap = 1;
+            @Override
+            public void run() {
+                // 存储 app:class
+                boolean res = register(className, ip_port, channel);
+                if (!res){
+                    // 重新尝试
+                    FRSConstant.COMMON_EXECUTORS.schedule(this, timeGap, TimeUnit.SECONDS);
+                    timeGap *= 2;
+                }
+            }
+        });
+    }
+
+    /**
+     * 获取可用IP list
+     * @param className 类名
+     * @return ip set
+     */
+    public List<String> getIps(String className) {
+        Set<Object> set = redisOpe.getSetWithOutKey2(className, FRSConstant.REDIS_PRE + FRSConstant.EXPIRE_SET);
+        if (set == null || set.isEmpty()) {
+            return null;
+        }
+        List<String> ips = new ArrayList<>();
+        for (Object o : set) {
+            ips.add(o.toString());
+        }
+        return ips;
+    }
+
+    /**
+     * 移除通道
+     * @param channelId 通道ID
+     */
+    public void remove(String channelId) {
+        // 获取关联通道
+        String ip_port = (String) redisOpe.getValue(channelId);
+        // 删除通道
+        redisOpe.rmKey(channelId);
+        // 失效果队列中添加该值
+        if (ip_port != null){
+            redisOpe.cacheSet(FRSConstant.REDIS_PRE + FRSConstant.EXPIRE_SET
+                    , ip_port);
+        }
     }
 }
