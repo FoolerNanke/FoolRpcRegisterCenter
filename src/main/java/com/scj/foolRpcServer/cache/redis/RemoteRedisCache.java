@@ -29,9 +29,9 @@ public class RemoteRedisCache {
      * 信息存储
      * @param ip_port 下游主机的IP+PORT
      * @param className 服务类名称
-     * @return 该 channel and ip 是否首次添加
+     * @return 插入结果
      */
-    public boolean saveByOriginRedis(String ip_port, String className, Channel channel){
+    public boolean register(String className, String ip_port, Channel channel){
         try {
             // 存储 class:ip_port
             boolean class_ip_port_save = redisOpe.cacheSet(FRSConstant.REDIS_PRE + FRSConstant.CLASS + className, ip_port);
@@ -53,13 +53,13 @@ public class RemoteRedisCache {
      * @param ip_port 下游主机的IP+PORT
      * @param className 服务类名称
      */
-    public void saveMustSuccess(String ip_port, String className, Channel channel){
+    public void registerMustSuccess(String className, String ip_port, Channel channel){
         FRSConstant.COMMON_EXECUTORS.submit(new Runnable() {
             private long timeGap = 1;
             @Override
             public void run() {
                 // 存储 app:class
-                boolean res = saveByOriginRedis(ip_port, className, channel);
+                boolean res = register(className, ip_port, channel);
                 if (!res){
                     // 重新尝试
                     FRSConstant.COMMON_EXECUTORS.schedule(this, timeGap, TimeUnit.SECONDS);

@@ -44,7 +44,7 @@ public class LocalCache implements FoolCache{
     @Override
     public String getService(String fullClassName, String version) {
         String ip = cache.getIp(fullClassName);
-        if (ip == null || ip.equals("")){
+        if (ip == null || ip.isEmpty()){
             return "";
         } else {
             log.info("给出IP{}", ip);

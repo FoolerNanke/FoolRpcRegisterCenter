@@ -27,7 +27,7 @@ public class RedisCache implements FoolCache {
     @Override
     public boolean register(String appName, String fullClassName, String ip_port, String version, Channel channel) {
         // 线程池保证成功
-        cache.saveMustSuccess(ip_port, fullClassName, channel);
+        cache.registerMustSuccess(ip_port, fullClassName, channel);
         return true;
     }
 
