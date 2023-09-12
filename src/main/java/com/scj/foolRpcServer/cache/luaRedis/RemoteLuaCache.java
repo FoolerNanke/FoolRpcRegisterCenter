@@ -74,7 +74,18 @@ public class RemoteLuaCache {
         }
     }
 
-    public void remove(String className) {
-
+    /**
+     * 移除channel绑定的ip
+     * @param channel_id channel id
+     * @return 是否成功
+     */
+    public boolean remove(String channel_id) {
+        try {
+            return redisLua.removeIp(channel_id,
+                    FRSConstant.REDIS_PRE + FRSConstant.EXPIRE_SET);
+        } catch (Throwable t){
+            log.error("移除ip失败, channel_id = {}, error = {}", channel_id, t.getMessage());
+            return false;
+        }
     }
 }

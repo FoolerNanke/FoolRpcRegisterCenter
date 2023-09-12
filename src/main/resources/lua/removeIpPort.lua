@@ -9,12 +9,12 @@ if ip_port ~= false then
     if is == 0 then
         local add = redis.call('sadd', expireSet, ip_port)
         if add == 0 then
-            return "0"
+            return false
         end
     end
     local res = redis.call('del', channel_id)
     if res == 0 then
-        return "0"
+        return false
     end
 end
-return "1"
+return true
