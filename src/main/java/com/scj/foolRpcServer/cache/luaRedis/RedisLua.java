@@ -156,12 +156,11 @@ public class RedisLua {
         return stringRedisTemplate.execute(redisScript, keys);
     }
 
-    public void test() {
-        DefaultRedisScript<Integer> redisScript = new DefaultRedisScript<>();
+    public boolean removeIp(String channel_id, String expireSet) {
+        DefaultRedisScript<Boolean> redisScript = new DefaultRedisScript<>();
         redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("lua/removeIpPort.lua")));
-        redisScript.setResultType(Integer.class);
-        List<String> keys = Arrays.asList("channel_id", "expireSet");
-        Integer execute = stringRedisTemplate.execute(redisScript, new StringRedisSerializer(),new GenericToStringSerializer<>(Integer.class),keys);
-        System.out.println(execute);
+        redisScript.setResultType(Boolean.class);
+        List<String> keys = Arrays.asList(channel_id, expireSet);
+        return Boolean.TRUE.equals(stringRedisTemplate.execute(redisScript, new StringRedisSerializer(), new GenericToStringSerializer<>(Boolean.class), keys));
     }
 }
