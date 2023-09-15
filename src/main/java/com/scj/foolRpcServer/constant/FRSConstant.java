@@ -6,6 +6,10 @@ import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -27,14 +31,21 @@ public class FRSConstant {
     public static FoolCache foolCache = new LocalCache();
 
     /**
-     * 心跳时间间隔
+     * 托管的IP队列
+     * key:ip_port
+     * value:有效时间
      */
-    public static long PING_PONG_TIME_GAP = 20;
+    public static Map<String, Long> ipMap = new ConcurrentHashMap<>();
 
     /**
      * 心跳时间间隔
      */
-    public static TimeUnit PING_PONG_TIME_UNIT = TimeUnit.SECONDS;
+    public static long PING_PONG_TIME_GAP = 20000;
+
+    /**
+     * 心跳时间间隔
+     */
+    public static TimeUnit PING_PONG_TIME_UNIT = TimeUnit.MILLISECONDS;
 
     /**
      * PING PONG处理线程池

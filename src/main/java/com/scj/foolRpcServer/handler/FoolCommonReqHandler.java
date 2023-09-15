@@ -5,6 +5,7 @@ import com.scj.foolRpcBase.constant.Constant;
 import com.scj.foolRpcBase.entity.FoolRegisterReq;
 import com.scj.foolRpcBase.entity.FoolRegisterResp;
 import com.scj.foolRpcBase.exception.ExceptionEnum;
+import com.scj.foolRpcServer.cache.LocalCache;
 import com.scj.foolRpcServer.constant.FRSConstant;
 import com.scj.foolRpcServer.pingpong.PingPongRunnable;
 import io.netty.channel.ChannelHandlerContext;
@@ -84,12 +85,13 @@ public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtoc
         ctx.writeAndFlush(foolProtocol);
 
         // IP完成注册 添加一个IP心跳检测任务
-        if (firstTimeAdd){
+        if (!FRSConstant.ipMap.containsKey(ip)) {
+            FRSConstant.ipMap.put(ip, FRSConstant.PING_PONG_TIME_GAP);
             FRSConstant.EXECUTORS.schedule(
-                    new PingPongRunnable(FRSConstant.EXECUTORS
-                            , ctx.channel())
-                    , FRSConstant.PING_PONG_TIME_GAP
-                    , FRSConstant.PING_PONG_TIME_UNIT);
+                new PingPongRunnable(FRSConstant.EXECUTORS
+                        , ctx.channel(), ip)
+                , FRSConstant.PING_PONG_TIME_GAP
+                , FRSConstant.PING_PONG_TIME_UNIT);
         }
     }
 
