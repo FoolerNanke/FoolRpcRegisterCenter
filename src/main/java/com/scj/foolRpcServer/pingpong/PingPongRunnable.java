@@ -44,7 +44,7 @@ public class PingPongRunnable implements Runnable {
            则认为此时不需要进行心跳检测了
          */
         long time = System.currentTimeMillis();
-        Long val = FRSConstant.ipMap.get(ip_port);
+        Long val = FRSConstant.ipMap.getOrDefault(ip_port, 0L);
         if (val > time){
             eventExecutors.schedule(this
                     , val - time

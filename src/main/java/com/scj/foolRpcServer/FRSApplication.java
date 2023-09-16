@@ -1,6 +1,6 @@
 package com.scj.foolRpcServer;
 
-import com.scj.foolRpcBase.entity.FoolRegisterReq;
+import com.scj.foolRpcBase.entity.FoolCommonReq;
 import com.scj.foolRpcServer.cache.luaRedis.RedisLua;
 import com.scj.foolRpcServer.cache.redis.RedisOpe;
 import org.springframework.boot.SpringApplication;
@@ -13,7 +13,7 @@ public class FRSApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext run = SpringApplication.run(FRSApplication.class, args);
         RedisOpe bean = run.getBean(RedisOpe.class);
-        FoolRegisterReq req = new FoolRegisterReq();
+        FoolCommonReq req = new FoolCommonReq();
         req.setAppName("appName");
         req.setTimeStamp(1234L);
         req.setVersion("0.0.0.1");
@@ -27,7 +27,7 @@ public class FRSApplication {
 //        bean.test();
 
         RedisLua lua = run.getBean(RedisLua.class);
-        lua.test();
+//        lua.test();
     }
 
 }

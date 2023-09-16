@@ -2,10 +2,9 @@ package com.scj.foolRpcServer.handler;
 
 import com.scj.foolRpcBase.entity.FoolProtocol;
 import com.scj.foolRpcBase.constant.Constant;
-import com.scj.foolRpcBase.entity.FoolRegisterReq;
-import com.scj.foolRpcBase.entity.FoolRegisterResp;
+import com.scj.foolRpcBase.entity.FoolCommonReq;
+import com.scj.foolRpcBase.entity.FoolCommonResp;
 import com.scj.foolRpcBase.exception.ExceptionEnum;
-import com.scj.foolRpcServer.cache.LocalCache;
 import com.scj.foolRpcServer.constant.FRSConstant;
 import com.scj.foolRpcServer.pingpong.PingPongRunnable;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,16 +15,16 @@ import io.netty.channel.SimpleChannelInboundHandler;
  * @date 2023/8/25 19:46
  * @description 下游注册信息处理类
  */
-public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtocol<FoolRegisterReq>> {
+public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtocol<FoolCommonReq>> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx
-            , FoolProtocol<FoolRegisterReq> foolProtocol) {
+            , FoolProtocol<FoolCommonReq> foolProtocol) {
         if (foolProtocol.getRemoteType() == Constant.REGISTER_PONG_RESP){
             ctx.fireChannelRead(foolProtocol);
             return;
         }
         // 来自下游的注册信息
-        FoolRegisterReq req = foolProtocol.getData();
+        FoolCommonReq req = foolProtocol.getData();
         // 获取发送-处理的时间差
         long gap = System.currentTimeMillis() - req.getTimeStamp();
         // 拼接key
@@ -50,9 +49,9 @@ public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtoc
      * @param gap 间隔
      * @param reqId 请求ID
      */
-    public void handReqForIp(FoolRegisterReq req, ChannelHandlerContext ctx
+    public void handReqForIp(FoolCommonReq req, ChannelHandlerContext ctx
             , long gap, long reqId) {
-        FoolProtocol<FoolRegisterResp> foolProtocol =
+        FoolProtocol<FoolCommonResp> foolProtocol =
                 buildResp(reqId, Constant.REGISTER_RESP_GET_IP);
         // 获取IP
         String serviceIp = FRSConstant.foolCache.getService(
@@ -62,6 +61,10 @@ public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtoc
         foolProtocol.getData().setMessage(ExceptionEnum.SUCCESS.getErrorMessage());
         foolProtocol.getData().setIP(serviceIp);
         ctx.writeAndFlush(foolProtocol);
+
+        // 刷新ip保活的有效值
+        FRSConstant.ipMap.put(ctx.channel().remoteAddress().toString()
+                , System.currentTimeMillis() + FRSConstant.PING_PONG_TIME_GAP);
     }
 
     /**
@@ -72,9 +75,9 @@ public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtoc
      * @param reqId 请求ID
      * @param ip 服务IP
      */
-    public void handReqForRegister(FoolRegisterReq req, ChannelHandlerContext ctx
+    public void handReqForRegister(FoolCommonReq req, ChannelHandlerContext ctx
             , long gap, long reqId, String ip){
-        FoolProtocol<FoolRegisterResp> foolProtocol =
+        FoolProtocol<FoolCommonResp> foolProtocol =
                 buildResp(reqId, Constant.REGISTER_RESP_REG_CLASS);
         // 注册信息
         boolean firstTimeAdd = FRSConstant.foolCache.register(req.getAppName()
@@ -99,14 +102,14 @@ public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtoc
      * 构建响应
      * @param reqId 请求ID
      * @param type 类型
-     * @return FoolProtocol<FoolRegisterResp>
+     * @return FoolProtocol<FoolCommonResp>
      */
-    public FoolProtocol<FoolRegisterResp> buildResp(long reqId, byte type) {
+    public FoolProtocol<FoolCommonResp> buildResp(long reqId, byte type) {
         // 构造响应
-        FoolProtocol<FoolRegisterResp> foolProtocol = new FoolProtocol<>();
+        FoolProtocol<FoolCommonResp> foolProtocol = new FoolProtocol<>();
         foolProtocol.setRemoteType(type);
         foolProtocol.setReqId(reqId);
-        foolProtocol.setData(new FoolRegisterResp());
+        foolProtocol.setData(new FoolCommonResp());
         return foolProtocol;
     }
 }
