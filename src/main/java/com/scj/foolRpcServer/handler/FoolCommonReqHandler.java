@@ -6,7 +6,7 @@ import com.scj.foolRpcBase.entity.FoolCommonReq;
 import com.scj.foolRpcBase.entity.FoolCommonResp;
 import com.scj.foolRpcBase.exception.ExceptionEnum;
 import com.scj.foolRpcServer.constant.FRSConstant;
-import com.scj.foolRpcServer.pingpong.PingPongRunnable;
+import com.scj.foolRpcServer.pingpong.RegPingPong;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 /**
@@ -19,7 +19,7 @@ public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtoc
     @Override
     protected void channelRead0(ChannelHandlerContext ctx
             , FoolProtocol<FoolCommonReq> foolProtocol) {
-        if (foolProtocol.getRemoteType() == Constant.REGISTER_PONG_RESP){
+        if (foolProtocol.getRemoteType() == Constant.PONG_RESP){
             ctx.fireChannelRead(foolProtocol);
             return;
         }
@@ -61,10 +61,6 @@ public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtoc
         foolProtocol.getData().setMessage(ExceptionEnum.SUCCESS.getErrorMessage());
         foolProtocol.getData().setIP(serviceIp);
         ctx.writeAndFlush(foolProtocol);
-
-        // 刷新ip保活的有效值
-        FRSConstant.ipMap.put(ctx.channel().remoteAddress().toString()
-                , System.currentTimeMillis() + FRSConstant.PING_PONG_TIME_GAP);
     }
 
     /**
@@ -88,14 +84,7 @@ public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtoc
         ctx.writeAndFlush(foolProtocol);
 
         // IP完成注册 添加一个IP心跳检测任务
-        if (!FRSConstant.ipMap.containsKey(ip)) {
-            FRSConstant.ipMap.put(ip, FRSConstant.PING_PONG_TIME_GAP);
-            FRSConstant.EXECUTORS.schedule(
-                new PingPongRunnable(FRSConstant.EXECUTORS
-                        , ctx.channel(), ip)
-                , FRSConstant.PING_PONG_TIME_GAP
-                , FRSConstant.PING_PONG_TIME_UNIT);
-        }
+        RegPingPong.addPingPong(ctx.channel());
     }
 
     /**
