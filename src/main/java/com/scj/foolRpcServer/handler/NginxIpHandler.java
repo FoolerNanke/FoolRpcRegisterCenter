@@ -1,6 +1,7 @@
 package com.scj.foolRpcServer.handler;
 
 import com.scj.foolRpcServer.constant.FRSConstant;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.haproxy.HAProxyMessage;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
  * @description: 获取代理 nginx 代理前的客户端真实 ip
  */
 @Component
+@ChannelHandler.Sharable
 @Slf4j
 public class NginxIpHandler extends ChannelInboundHandlerAdapter {
 
