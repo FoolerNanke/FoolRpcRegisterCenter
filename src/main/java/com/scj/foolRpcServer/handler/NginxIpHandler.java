@@ -4,9 +4,8 @@ import com.scj.foolRpcServer.constant.FRSConstant;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.haproxy.HAProxyMessage;
-import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
 import io.netty.util.AttributeKey;
-import org.checkerframework.checker.units.qual.C;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,22 +15,23 @@ import org.springframework.stereotype.Component;
  * @description: 获取代理 nginx 代理前的客户端真实 ip
  */
 @Component
+@Slf4j
 public class NginxIpHandler extends ChannelInboundHandlerAdapter {
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg){
         if (msg instanceof HAProxyMessage) {
             HAProxyMessage haProxyMessage = (HAProxyMessage) msg;
+            // 客户端真实ip
             String clientIp = haProxyMessage.sourceAddress();
+            // 客户端真实端口
             Integer clientPort = haProxyMessage.sourcePort();
-            // 在这里，您可以将客户端的真实 IP 和端口传递给后续处理器
-            // 例如，将它们设置为 ChannelHandlerContext 的属性
+            // 将真实ip写入到 channel 的属性当中
             ctx.channel().attr(AttributeKey.valueOf(FRSConstant.CLIENT_REAL_IP)).set(clientIp);
+            // 将真实port写入到 channel 的属性中
             ctx.channel().attr(AttributeKey.valueOf(FRSConstant.CLIENT_REAL_PORT)).set(clientPort);
-            // 继续处理其他消息
-            ctx.fireChannelRead(msg);
-        } else {
-            super.channelRead(ctx, msg);
+            log.info("nginx转发 客户端真实ip:{} 真实端口:{}", clientIp, clientPort);
         }
+        ctx.fireChannelRead(msg);
     }
 }
