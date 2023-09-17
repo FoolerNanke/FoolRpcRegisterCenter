@@ -87,6 +87,16 @@ public class FRSConstant {
      */
     public static Long EXPIRE_TIME = (long) (3 * 24 * 60 * 60);
 
+    /**
+     * 客户端真实ip
+     */
+    public static String CLIENT_REAL_IP = "clientIp";
+
+    /**
+     * 客户端真实端口
+     */
+    public static String CLIENT_REAL_PORT = "clientPort";
+
 
 
 }

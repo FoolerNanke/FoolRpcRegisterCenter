@@ -6,10 +6,12 @@ import com.scj.foolRpcBase.entity.FoolCommonReq;
 import com.scj.foolRpcBase.entity.FoolCommonResp;
 import com.scj.foolRpcBase.exception.ExceptionEnum;
 import com.scj.foolRpcServer.cache.FoolCache;
+import com.scj.foolRpcServer.constant.FRSConstant;
 import com.scj.foolRpcServer.pingpong.RegPingPong;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.AttributeKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +45,11 @@ public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtoc
         long gap = System.currentTimeMillis() - req.getTimeStamp();
         // 拼接key
         String ip = ctx.channel().remoteAddress().toString();
+        if (ctx.channel().attr(AttributeKey.valueOf(FRSConstant.CLIENT_REAL_IP)).get() != null){
+            String real_ip = ctx.channel().attr(AttributeKey.valueOf(FRSConstant.CLIENT_REAL_IP)).get().toString();
+            String real_port = ctx.channel().attr(AttributeKey.valueOf(FRSConstant.CLIENT_REAL_PORT)).get().toString();
+            ip = "/" + real_ip + ":" + real_port;
+        }
         switch (foolProtocol.getRemoteType()) {
             // 获取下游服务IP
             case Constant.REGISTER_REQ_GET_IP:
