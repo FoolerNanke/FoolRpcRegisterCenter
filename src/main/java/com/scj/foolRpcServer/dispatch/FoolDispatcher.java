@@ -7,6 +7,5 @@ package com.scj.foolRpcServer.dispatch;
  * @description 调度接口
  */
 public interface FoolDispatcher {
-
     String dispatch();
 }

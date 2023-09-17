@@ -31,23 +31,6 @@ public class FRSConstant {
     public static FoolCache foolCache = new LocalCache();
 
     /**
-     * 托管的IP队列
-     * key:ip_port
-     * value:有效时间
-     */
-    public static Map<String, Long> ipMap = new ConcurrentHashMap<>();
-
-    /**
-     * 心跳时间间隔
-     */
-    public static long PING_PONG_TIME_GAP = 20000;
-
-    /**
-     * 心跳时间间隔
-     */
-    public static TimeUnit PING_PONG_TIME_UNIT = TimeUnit.MILLISECONDS;
-
-    /**
      * PING PONG处理线程池
      * 处理线程数量为8个
      */
