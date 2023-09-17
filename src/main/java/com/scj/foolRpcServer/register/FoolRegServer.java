@@ -8,10 +8,13 @@ import com.scj.foolRpcBase.handler.out.FoolProtocolEncode;
 import com.scj.foolRpcBase.handler.resp.FoolRespHandler;
 import com.scj.foolRpcServer.constant.FRSConstant;
 import com.scj.foolRpcServer.handler.FoolCommonReqHandler;
+import com.scj.foolRpcServer.handler.NginxIpHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,6 +33,9 @@ public class FoolRegServer implements InitializingBean {
     @Autowired
     private FoolCommonReqHandler foolCommonReqHandler;
 
+    @Autowired
+    private NginxIpHandler nginxIpHandler;
+
     @Override
     public void afterPropertiesSet() {
         new ServerBootstrap()
@@ -39,6 +45,10 @@ public class FoolRegServer implements InitializingBean {
                     @Override
                     protected void initChannel(NioSocketChannel channel) {
                         channel.pipeline()
+                        // nginx 真实ip传递解码器
+                        .addLast(new HAProxyMessageDecoder())
+                        // 处理真实 ip
+                        .addLast(nginxIpHandler)
                         // 解码
                         .addLast(new FoolProtocolDecode())
                         // 编码
