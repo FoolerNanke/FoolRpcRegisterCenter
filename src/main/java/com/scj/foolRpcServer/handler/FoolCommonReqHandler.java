@@ -5,17 +5,31 @@ import com.scj.foolRpcBase.constant.Constant;
 import com.scj.foolRpcBase.entity.FoolCommonReq;
 import com.scj.foolRpcBase.entity.FoolCommonResp;
 import com.scj.foolRpcBase.exception.ExceptionEnum;
-import com.scj.foolRpcServer.constant.FRSConstant;
+import com.scj.foolRpcServer.cache.FoolCache;
 import com.scj.foolRpcServer.pingpong.RegPingPong;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 /**
  * @author suchangjie.NANKE
- * @Title: FoolRegisterHandler
+o * @Title: FoolCommonReqHandler
  * @date 2023/8/25 19:46
  * @description 下游注册信息处理类
  */
+
+@Component
+@ChannelHandler.Sharable
 public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtocol<FoolCommonReq>> {
+
+    @Autowired
+    private FoolCache localCache;
+
+    @Autowired
+    private RegPingPong regPingPong;
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx
             , FoolProtocol<FoolCommonReq> foolProtocol) {
@@ -54,7 +68,7 @@ public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtoc
         FoolProtocol<FoolCommonResp> foolProtocol =
                 buildResp(reqId, Constant.REGISTER_RESP_GET_IP);
         // 获取IP
-        String serviceIp = FRSConstant.foolCache.getService(
+        String serviceIp = localCache.getService(
                 req.getFullClassName(), req.getVersion());
         // TODO 异常
         foolProtocol.getData().setCode(ExceptionEnum.SUCCESS.getErrorCode());
@@ -76,15 +90,14 @@ public class FoolCommonReqHandler extends SimpleChannelInboundHandler<FoolProtoc
         FoolProtocol<FoolCommonResp> foolProtocol =
                 buildResp(reqId, Constant.REGISTER_RESP_REG_CLASS);
         // 注册信息
-        boolean firstTimeAdd = FRSConstant.foolCache.register(req.getAppName()
+        boolean firstTimeAdd = localCache.register(req.getAppName()
                 , req.getFullClassName()
                 , ip, req.getVersion(), ctx.channel());
         foolProtocol.getData().setCode(ExceptionEnum.SUCCESS.getErrorCode());
         foolProtocol.getData().setMessage(ExceptionEnum.SUCCESS.getErrorMessage());
         ctx.writeAndFlush(foolProtocol);
-
         // IP完成注册 添加一个IP心跳检测任务
-        RegPingPong.addPingPong(ctx.channel());
+        regPingPong.addPingPong(ctx.channel(), true);
     }
 
     /**
