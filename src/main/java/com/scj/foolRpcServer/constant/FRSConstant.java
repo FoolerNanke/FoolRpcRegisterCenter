@@ -97,7 +97,15 @@ public class FRSConstant {
      */
     public static String CLIENT_REAL_PORT = "clientPort";
 
+    /**
+     * PROXY
+     */
+    public static String HAP_HEAD = "PROXY ";
 
+    /**
+     * gap space
+     */
+    public static String GAP_SPACE = " ";
 
 }
 
